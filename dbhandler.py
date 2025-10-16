@@ -1,9 +1,5 @@
 import mysql.connector
 
-opinions = {}
-statments = {}
-reasons = {}
-
 mydb = mysql.connector.connect(
     host="localhost",
     user="root",
@@ -12,59 +8,49 @@ mydb = mysql.connector.connect(
 )
 cursor = mydb.cursor(buffered=True)
 
-cursor.execute("SELECT `id`, `table_name` FROM `reason_types`") 
-reason_types = [i[1] for i in cursor.fetchall()]
-
 
 class Opinion(object):
+    opinions = {}
 
-    def __init__(self, text:list, pros:list, cons:list):
+    def __init__(self, text:list):
         self.text = text
         self.pros = []
         self.cons = []
-
-        for pro in pros:
-            self.pros.append(reasons[pro])
-
-        for con in cons:
-            self.cons.append(reasons[con])
+    
+    def set_links(self, pros:dict[str], cons:dict[str]):
+        """set the pros and cons of Opinion"""
+        if pros:
+            for pro in pros:
+                self.pros.append(Opinion.opinions[int(pro)])
+        if cons:
+            for con in cons:
+                self.cons.append(Opinion.opinions[int(con)])
         
 
 def load():
-    global statments
-    global reasons
     global opinions
+    Opinion.opinions.clear()
 
-    # load statments
-    sql = f"SELECT `id`, `text` FROM `statments`;"
-    cursor.execute(sql) 
-    table = cursor.fetchall()
-    for row in table:
-        statments[row[0]] = row[1]
-    
-    # load reasons
-    sql = f"SELECT `id`, `type`, `reason_id` FROM `reasons`;"
-    cursor.execute(sql) 
-    table = cursor.fetchall()
-    for row in table:
-        reasons[row[0]] = (reason_types[row[1]], row[2])
-    
-    # load opinion data
-    opinion_ids = []
-    opinion_text = []
-    opinion_pros = []
-    opinion_cons = []
+    # create opinions
     sql = f"SELECT `id`, `text`, `pros`, `cons` FROM `opinions`;"
     cursor.execute(sql) 
     table = cursor.fetchall()
+    
+    ids = []
+    pros = {}
+    cons = {}
     for row in table:
-        opinion_ids.append(row[0])
-        opinion_text.append(row[1])
+        ids.append(row[0])
+        Opinion.opinions[row[0]] = Opinion(row[1])
+        if row[2]:
+            pros[row[0]] = row[2].split(',')
+        else:
+            pros[row[0]] = []
         
-        opinion_pros.append([int(i) for i in row[2].split(',')])
-        opinion_cons.append([int(i) for i in row[3].split(',')])
+        if row[3]:
+            cons[row[0]] = row[3].split(',')
+        else:
+            cons[row[0]] = []
 
-    # save opinions
-    for i, opinion_id in enumerate(opinion_ids):
-        opinions[opinion_id] = Opinion(opinion_text[i], opinion_pros[i], opinion_cons[i])
-
+    for i in ids:
+        Opinion.opinions[i].set_links(pros[i], cons[i])
