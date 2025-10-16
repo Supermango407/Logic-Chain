@@ -1,6 +1,4 @@
-background_color = 'gray10'
-header_color = 'steelblue4'
-menu_color = 'gray5'
-border_color = 'gray40'
+opinion_color = 'steel blue'
+statment_color = "#ffff7f"
 
-font_size = 24
+font_size = 18

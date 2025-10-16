@@ -14,8 +14,8 @@ class Opinion(object):
 
     def __init__(self, text:list):
         self.text = text
-        self.pros = []
-        self.cons = []
+        self.pros:list[Opinion] = []
+        self.cons:list[Opinion] = []
     
     def set_links(self, pros:dict[str], cons:dict[str]):
         """set the pros and cons of Opinion"""
@@ -26,6 +26,10 @@ class Opinion(object):
             for con in cons:
                 self.cons.append(Opinion.opinions[int(con)])
         
+
+    def is_statment(self) -> bool:
+        """will be True if there are not pros or cons."""
+        return len(self.cons) == 0 and len(self.pros) == 0
 
 def load():
     global opinions

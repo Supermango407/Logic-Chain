@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 15, 2025 at 03:18 AM
+-- Generation Time: Oct 16, 2025 at 08:14 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -39,9 +39,12 @@ CREATE TABLE `opinions` (
 --
 
 INSERT INTO `opinions` (`id`, `text`, `pros`, `cons`) VALUES
-(1, 'i should have a drivers license', '2', '3'),
+(1, 'i should have a drivers license', '2,4', '3'),
 (2, 'with a license i could practice being alone', '', ''),
-(3, 'ai car will become more common and cheep', '', '');
+(3, 'ai car will become more common and cheep', '', ''),
+(4, 'i could get a job easier with a license', '5', '6'),
+(5, 'i\'d feel trapped at work if i couldn\'t drive', '', ''),
+(6, 'id prefer to work from home', '', '');
 
 --
 -- Indexes for dumped tables
@@ -61,7 +64,7 @@ ALTER TABLE `opinions`
 -- AUTO_INCREMENT for table `opinions`
 --
 ALTER TABLE `opinions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
