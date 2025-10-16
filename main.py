@@ -5,18 +5,18 @@ import settings
 import dbhandler
 
 
-# root = tk.Tk()
-# root.title("Logic Chain")
+root = tk.Tk()
+root.title("Logic Chain")
 
 # set screen size
 if len(screeninfo.get_monitors()) == 2: # two monitors
-    # root.geometry(f"800x800+{root.winfo_screenwidth()+250}+40")
+    root.geometry(f"800x800+{root.winfo_screenwidth()+250}+40")
 else:
     root.geometry(f"800x800+250+40")
 
-# root.minsize(400, 400)
-# root.state('zoomed')
-# root.config(bg='black')
+root.minsize(400, 400)
+root.state('zoomed')
+root.config(bg='black')
 
 dbhandler.load()
 # print("\nstatments:")
@@ -97,5 +97,4 @@ window = Window()
 
 # window.open_table(dbhandler.opinions[1])
 
-pass
-# root.mainloop()
+root.mainloop()
