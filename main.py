@@ -10,12 +10,12 @@ root.title("Logic Chain")
 
 # set screen size
 if len(screeninfo.get_monitors()) == 2: # two monitors
-    root.geometry(f"800x800+{root.winfo_screenwidth()+250}+40")
+    root.geometry(f"800x6s00+{root.winfo_screenwidth()+250}+40")
 else:
-    root.geometry(f"800x800+250+40")
+    root.geometry(f"800x600+250+40")
 
 root.minsize(400, 400)
-root.state('zoomed')
+# root.state('zoomed')
 root.config(bg='black')
 
 dbhandler.load()
@@ -28,7 +28,7 @@ dbhandler.load()
 # for i in dbhandler.opinions:
     # opinion = dbhandler.opinions[i]
     # print(f"  {i}:\t{opinion.text}")
-
+        
 
 class Header(object):
 
@@ -88,13 +88,15 @@ class Window(object):
         self.cons_label = tk.Label(self.cons_frame, text='Cons', background='gray10', fg='white', font=large_font)
         self.cons_label.pack(side='top', fill='x')
 
-        self.pros_opinions_frame = tk.Frame(self.pros_frame, background='gray15')
+        self.pros_opinions_frame = tk.Frame(self.pros_frame)
         self.pros_opinions_frame.pack(side='top', fill='both', expand=True)
-        self.cons_opinions_frame = tk.Frame(self.cons_frame, background='gray15')
+        self.pros_scrollable_frame = create_scrollable_frame(self.pros_opinions_frame, background='gray15')
+        self.cons_opinions_frame = tk.Frame(self.cons_frame)
         self.cons_opinions_frame.pack(side='top', fill='both', expand=True)
+        self.cons_scrollable_frame = create_scrollable_frame(self.cons_opinions_frame, background='gray15')
         
-        self.add_opinions_frames(self.pros_opinions_frame, opinion.pros)
-        self.add_opinions_frames(self.cons_opinions_frame, opinion.cons)
+        self.add_opinions_frames(self.pros_scrollable_frame, opinion.pros)
+        self.add_opinions_frames(self.cons_scrollable_frame, opinion.cons)
     
     def add_opinions_frames(self, parrent:tk.Widget, opinions:list[dbhandler.Opinion]):
         """adds frames for `opinions` to `parrent`."""
@@ -109,9 +111,38 @@ class Window(object):
             delete_button = tk.Button(header, background='red', activebackground='#ff7f7f', text='DEL', font=small_font)
             delete_button.pack(side='right')
 
-            text = tk.Text(frame, background='gray20', wrap='word', font=main_font, height=2, fg='white')
+            text = tk.Text(frame, background='gray20', wrap='word', font=main_font, height=6, fg='white')
             text.insert(tk.END, opinion.text)
             text.pack(side='top', fill='x', expand=True)
+
+
+def create_scrollable_frame(parrent:tk.Widget, background="white") -> tk.Widget:
+    """creates a frame inside `parrent` that fills it and is scrollable."""
+    canvas = tk.Canvas(parrent, background=background, borderwidth=0, highlightthickness=0)
+    canvas.pack(side='left', fill='both', expand=True)
+
+    scrollbar = tk.Scrollbar(parrent, orient='vertical', command=canvas.yview)
+    scrollbar.pack(side='right', fill='y')
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    scrollable_frame = tk.Frame(canvas, background=background)
+    id = canvas.create_window((0, 0), window=scrollable_frame, anchor='nw')
+    
+    canvas.bind("<Configure>", lambda event: canvas.itemconfig(id, width=event.width))
+    scrollable_frame.bind("<Configure>", lambda event: canvas.configure(scrollregion=canvas.bbox('all')))
+
+    return scrollable_frame
+
+
+def get_all_children(widget:tk.Widget):
+    """recursively gets all children of `widget`"""
+    children = widget.winfo_children()
+    all_children = list(children)
+
+    for child in children:
+        all_children.extend(get_all_children(child))
+    
+    return all_children
 
 
 small_font = Font(family="Consolas", size=int(settings.font_size*0.5), weight="normal")
