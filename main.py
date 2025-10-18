@@ -10,7 +10,7 @@ root.title("Logic Chain")
 
 # set screen size
 if len(screeninfo.get_monitors()) == 2: # two monitors
-    root.geometry(f"800x6s00+{root.winfo_screenwidth()+250}+40")
+    root.geometry(f"800x600+{root.winfo_screenwidth()+250}+40")
 else:
     root.geometry(f"800x600+250+40")
 
@@ -71,78 +71,71 @@ class Window(object):
         # background will be the color of the border between frames
         self.frame = tk.Frame(root, background='gray40')
         self.frame.pack(side='top', fill='both', expand=True)
+        
+        self.frame.grid_columnconfigure(0, weight=1)
+        self.frame.grid_columnconfigure(1, weight=1)
+        self.frame.grid_rowconfigure(0, weight=1)
     
     def open_table(self, opinion:dbhandler.Opinion):
         """opens pros/cons table of `opinion`."""
         self.pros_frame = tk.Frame(self.frame, background='gray10')
         self.cons_frame = tk.Frame(self.frame, background='gray10')
 
-        self.frame.grid_columnconfigure(0, weight=1)
-        self.frame.grid_columnconfigure(1, weight=1)
-        self.frame.grid_rowconfigure(0, weight=1)
         self.pros_frame.grid(row=0, column=0, sticky='nsew', padx=(0, 1))
         self.cons_frame.grid(row=0, column=1, sticky='nsew', padx=(1, 0))
 
-        self.pros_label = tk.Label(self.pros_frame, text='Pros', background='gray10', fg='white', font=large_font)
-        self.pros_label.pack(side='top', fill='x')
-        self.cons_label = tk.Label(self.cons_frame, text='Cons', background='gray10', fg='white', font=large_font)
-        self.cons_label.pack(side='top', fill='x')
+        self.pros_table = ReasonTable(self.pros_frame, 'Pros', opinion.pros)
+        self.cons_table = ReasonTable(self.cons_frame, 'Cons', opinion.cons)
+    
 
-        self.pros_opinions_frame = tk.Frame(self.pros_frame)
-        self.pros_opinions_frame.pack(side='top', fill='both', expand=True)
-        self.pros_scrollable_frame = create_scrollable_frame(self.pros_opinions_frame, background='gray15')
-        self.cons_opinions_frame = tk.Frame(self.cons_frame)
-        self.cons_opinions_frame.pack(side='top', fill='both', expand=True)
-        self.cons_scrollable_frame = create_scrollable_frame(self.cons_opinions_frame, background='gray15')
+class ReasonTable(object):
+
+    def __init__(self, parrent:tk.Widget, header_text:str, reasons:list[dbhandler.Opinion]):
+        self.label = tk.Label(parrent, text=header_text, background='gray10', fg='white', font=large_font)
+        self.label.pack(side='top', fill='x')
+
+        self.canvas = tk.Canvas(parrent, background='gray15', borderwidth=0, highlightthickness=0)
+        self.canvas.pack(side='left', fill='both', expand=True)
+
+        self.scrollbar = tk.Scrollbar(parrent, orient='vertical', command=self.canvas.yview)
+        self.scrollbar.pack(side='right', fill='y')
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+
+        self.scrollable_frame = tk.Frame(self.canvas, background='gray15')
+        self.scrollable_frame_id = self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor='nw')
         
-        self.add_opinions_frames(self.pros_scrollable_frame, opinion.pros)
-        self.add_opinions_frames(self.cons_scrollable_frame, opinion.cons)
-    
-    def add_opinions_frames(self, parrent:tk.Widget, opinions:list[dbhandler.Opinion]):
-        """adds frames for `opinions` to `parrent`."""
-        for opinion in opinions:
-            frame = tk.Frame(parrent, background='gray10')
-            frame.pack(side='top', fill='x', padx=(10, 10), pady=(10, 0))
+        self.canvas.bind("<Configure>", lambda event: self.canvas.itemconfig(self.scrollable_frame_id, width=event.width))
+        self.scrollable_frame.bind("<Configure>", lambda event: self.canvas.configure(scrollregion=self.canvas.bbox('all')))
 
-            header_color = settings.statment_color if opinion.is_statment() else settings.opinion_color
-            header = tk.Frame(frame, background=header_color)
-            header.pack(side='top', fill='x', expand=True)
+        self.canvas.bind("<MouseWheel>", self.on_mouse_wheel)
+        self.scrollable_frame.bind("<MouseWheel>", self.on_mouse_wheel)
 
-            delete_button = tk.Button(header, background='red', activebackground='#ff7f7f', text='DEL', font=small_font)
-            delete_button.pack(side='right')
+        for reason in reasons:
+            self.add_reason(self.scrollable_frame, reason)
 
-            text = tk.Text(frame, background='gray20', wrap='word', font=main_font, height=6, fg='white')
-            text.insert(tk.END, opinion.text)
-            text.pack(side='top', fill='x', expand=True)
+    def add_reason(self, parrent:tk.Widget, reason:dbhandler.Opinion):
+        """creates `reason` box and puts it in `parrent`."""
+        frame = tk.Frame(parrent, background='gray10')
+        frame.pack(side='top', fill='x', padx=(10, 10), pady=(10, 0))
 
+        header_color = settings.statment_color if reason.is_statment() else settings.opinion_color
+        header = tk.Frame(frame, background=header_color)
+        header.pack(side='top', fill='x', expand=True)
 
-def create_scrollable_frame(parrent:tk.Widget, background="white") -> tk.Widget:
-    """creates a frame inside `parrent` that fills it and is scrollable."""
-    canvas = tk.Canvas(parrent, background=background, borderwidth=0, highlightthickness=0)
-    canvas.pack(side='left', fill='both', expand=True)
+        delete_button = tk.Button(header, background='red', activebackground='#ff7f7f', text='DEL', font=small_font)
+        delete_button.pack(side='right')
 
-    scrollbar = tk.Scrollbar(parrent, orient='vertical', command=canvas.yview)
-    scrollbar.pack(side='right', fill='y')
-    canvas.configure(yscrollcommand=scrollbar.set)
+        text = tk.Text(frame, background='gray20', wrap='word', font=main_font, height=6, fg='white')
+        text.insert(tk.END, reason.text)
+        text.pack(side='top', fill='x', expand=True)
 
-    scrollable_frame = tk.Frame(canvas, background=background)
-    id = canvas.create_window((0, 0), window=scrollable_frame, anchor='nw')
-    
-    canvas.bind("<Configure>", lambda event: canvas.itemconfig(id, width=event.width))
-    scrollable_frame.bind("<Configure>", lambda event: canvas.configure(scrollregion=canvas.bbox('all')))
+        frame.bind("<MouseWheel>", self.on_mouse_wheel)
+        header.bind("<MouseWheel>", self.on_mouse_wheel)
+        delete_button.bind("<MouseWheel>", self.on_mouse_wheel)
+        text.bind("<MouseWheel>", self.on_mouse_wheel)
 
-    return scrollable_frame
-
-
-def get_all_children(widget:tk.Widget):
-    """recursively gets all children of `widget`"""
-    children = widget.winfo_children()
-    all_children = list(children)
-
-    for child in children:
-        all_children.extend(get_all_children(child))
-    
-    return all_children
+    def on_mouse_wheel(self, event:tk.Event):
+        self.canvas.yview_scroll(-1 * (event.delta // 120), "units")
 
 
 small_font = Font(family="Consolas", size=int(settings.font_size*0.5), weight="normal")
