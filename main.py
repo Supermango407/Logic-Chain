@@ -117,21 +117,28 @@ class ReasonTable(object):
         """creates `reason` box and puts it in `parrent`."""
         frame = tk.Frame(parrent, background='gray10')
         frame.pack(side='top', fill='x', padx=(10, 10), pady=(10, 0))
+        frame.bind("<MouseWheel>", self.on_mouse_wheel)
 
         header_color = settings.statment_color if reason.is_statment() else settings.opinion_color
         header = tk.Frame(frame, background=header_color)
         header.pack(side='top', fill='x', expand=True)
+        header.bind("<MouseWheel>", self.on_mouse_wheel)
 
-        delete_button = tk.Button(header, background='red', activebackground='#ff7f7f', text='DEL', font=small_font)
+        delete_button = tk.Button(header, padx=4, background='red', activebackground='#ff7f7f', text='DEL', font=small_font)
         delete_button.pack(side='right')
+        delete_button.bind("<MouseWheel>", self.on_mouse_wheel)
+
+        table_button = tk.Button(header, padx=6, background='gray15', activebackground='gray25', fg='white', text='T', font=small_font, command=lambda: window.open_table(reason))
+        table_button.pack(side='left')
+        table_button.bind("<MouseWheel>", self.on_mouse_wheel)
+
+        chain_button = tk.Button(header, padx=6, background='gray15', activebackground='gray25', fg='white', text='^', font=small_font)
+        chain_button.pack(side='left')
+        chain_button.bind("<MouseWheel>", self.on_mouse_wheel)
 
         text = tk.Text(frame, background='gray20', wrap='word', font=main_font, height=6, fg='white')
         text.insert(tk.END, reason.text)
         text.pack(side='top', fill='x', expand=True)
-
-        frame.bind("<MouseWheel>", self.on_mouse_wheel)
-        header.bind("<MouseWheel>", self.on_mouse_wheel)
-        delete_button.bind("<MouseWheel>", self.on_mouse_wheel)
         text.bind("<MouseWheel>", self.on_mouse_wheel)
 
     def on_mouse_wheel(self, event:tk.Event):
