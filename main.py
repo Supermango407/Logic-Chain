@@ -15,20 +15,11 @@ else:
     root.geometry(f"800x600+250+40")
 
 root.minsize(400, 400)
-# root.state('zoomed')
+root.state('zoomed')
 root.config(bg='black')
 
 dbhandler.load()
-# print("\nstatments:")
-# for i in dbhandler.statments:
-#     statment = dbhandler.statments[i]
-#     print(f"  {i}:\t{statment}")
 
-# print("\nopinions:")
-# for i in dbhandler.opinions:
-    # opinion = dbhandler.opinions[i]
-    # print(f"  {i}:\t{opinion.text}")
-        
 
 class Header(object):
 
@@ -53,8 +44,16 @@ class Menu(object):
         self.frame = tk.Frame(root, background='gray5')
         # self.frame.pack(side='left', fill='y')
 
-        self.text = tk.Label(self.frame, text="Opinions", background='gray5', padx=4, pady=4, fg='white', font=main_font)
+        self.text = tk.Label(self.frame, text="Opinions", background='gray2', padx=4, pady=4, fg='white', font=large_font)
         self.text.pack(side='top')
+
+        self.directory_frame = tk.Frame(self.frame, background='gray5')
+        self.directory_frame.pack(side='top', fill='both', expand=True)
+
+        for id in dbhandler.Directory.top_directories:
+            directory:dbhandler.Directory = dbhandler.Directory.top_directories[id]
+            text = tk.Label(self.directory_frame, text=directory.name, background='gray5', padx=2, pady=4, fg='white', anchor='w', justify='left', font=main_font)
+            text.pack(side='top', fill='x')
 
     def toggle(self):
         if self.frame.winfo_ismapped():

@@ -1,3 +1,4 @@
+from __future__ import annotations
 import mysql.connector
 
 mydb = mysql.connector.connect(
@@ -10,7 +11,7 @@ cursor = mydb.cursor(buffered=True)
 
 
 class Opinion(object):
-    opinions = {}
+    opinions:dict[int, Opinion] = {}
 
     def __init__(self, text:list):
         self.text = text
@@ -30,6 +31,20 @@ class Opinion(object):
     def is_statment(self) -> bool:
         """will be True if there are not pros or cons."""
         return len(self.cons) == 0 and len(self.pros) == 0
+
+
+class Directory(object):
+    directories:dict[int, Directory] = {}
+    top_directories:dict[int, Directory] = {}
+
+    def __init__(self, name:str):
+        self.name:str = name
+        self.children:list[Directory] = []
+    
+    def add_child(self, child:Directory) -> None:
+        """adds `child` to `self.children`."""
+        self.children.append(child)
+
 
 def load():
     global opinions
@@ -58,3 +73,23 @@ def load():
 
     for i in ids:
         Opinion.opinions[i].set_links(pros[i], cons[i])
+
+    # create Directories
+    sql = f"SELECT `id`, `name`, `parrent` FROM `directories`;"
+    cursor.execute(sql) 
+    table = cursor.fetchall()
+
+    for row in table:
+        id:int = row[0]
+        name:str = row[1]
+        parrent_id:int = row[2]
+
+        directory:Directory = Directory(name)
+        Directory.directories[id] = directory
+
+        # add to `top_directorys` if top level directory
+        if parrent_id == 0:
+            Directory.top_directories[row[0]] = directory
+        else:
+            Directory.directories[parrent_id].add_child(directory)
+
