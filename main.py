@@ -33,14 +33,18 @@ dbhandler.load()
 class Header(object):
 
     def __init__(self):
-        self.frame = tk.Frame(root, background=settings.opinion_color, padx=4, pady=4)
+        self.frame = tk.Frame(root, height=65, background=settings.opinion_color, padx=4, pady=4)
         self.frame.pack(side='top', fill='x')
 
         self.menu_button = tk.Button(self.frame, text="Menu", font=main_font, command=menu.toggle)
-        self.menu_button.pack(side='left')
+        self.menu_button.place(anchor='w', rely=0.5)
 
-        self.header_text = tk.Label(self.frame, text='Opinion', font=large_font, background=settings.opinion_color)
-        self.header_text.pack(side='top', expand=True)
+        self.header_text = tk.Label(self.frame, text='Opinion', font=main_font, background=settings.opinion_color)
+        self.header_text.place(anchor='center', relx=0.5, rely=0.5)
+
+    def set_label(self, text:str) -> None:
+        """set the header label to be `text`."""
+        self.header_text.config(text=text)
 
 
 class Menu(object):
@@ -86,6 +90,8 @@ class Window(object):
 
         self.pros_table = ReasonTable(self.pros_frame, 'Pros', opinion.pros)
         self.cons_table = ReasonTable(self.cons_frame, 'Cons', opinion.cons)
+
+        header.set_label(opinion.text)
     
 
 class ReasonTable(object):
@@ -136,7 +142,7 @@ class ReasonTable(object):
         chain_button.pack(side='left')
         chain_button.bind("<MouseWheel>", self.on_mouse_wheel)
 
-        text = tk.Text(frame, background='gray20', wrap='word', font=main_font, height=6, fg='white')
+        text = tk.Text(frame, background='gray20', wrap='word', font=main_font, height=2, fg='white')
         text.insert(tk.END, reason.text)
         text.pack(side='top', fill='x', expand=True)
         text.bind("<MouseWheel>", self.on_mouse_wheel)
