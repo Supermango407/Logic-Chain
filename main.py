@@ -27,7 +27,7 @@ class Header(object):
         self.frame = tk.Frame(root, height=65, background=settings.opinion_color, padx=4, pady=4)
         self.frame.pack(side='top', fill='x')
 
-        self.menu_button = tk.Button(self.frame, text="Menu", font=main_font, command=menu.toggle)
+        self.menu_button = tk.Button(self.frame, text="Menu", font=main_font, command=menu.toggle_menu)
         self.menu_button.place(anchor='w', rely=0.5)
 
         self.header_text = tk.Label(self.frame, text='Opinion', font=main_font, background=settings.opinion_color)
@@ -50,25 +50,53 @@ class Menu(object):
         self.directory_frame = tk.Frame(self.frame, background='gray5')
         self.directory_frame.pack(side='top', fill='both', expand=True)
 
+        self.directory_menus:list[DirectoryMenu] = []
         for id in dbhandler.Directory.top_directories:
             directory:dbhandler.Directory = dbhandler.Directory.top_directories[id]
-            text = tk.Label(self.directory_frame, text=directory.name, background='gray5', padx=2, pady=4, fg='white', anchor='w', justify='left', font=main_font)
-            text.pack(side='top', fill='x')
+            self.directory_menus.append(DirectoryMenu(directory, self.directory_frame))
 
-    def toggle(self):
+    def toggle_menu(self):
         if self.frame.winfo_ismapped():
-            self.close()
+            self.close_menu()
         else:
-            self.open()
+            self.open_menu()
 
-    def open(self):
+    def open_menu(self):
         self.frame.pack(side='left', fill='y', after=header.frame)
 
-    def close(self):
+    def close_menu(self):
         self.frame.pack_forget()
 
 
+class DirectoryMenu(object):
+
+    def __init__(self, directory:dbhandler.Directory, parrent_frame, indentation:int=0):
+        self.children_directories:list[DirectoryMenu] = []
+        self.directory = directory
+        self.indentation = indentation
+        
+        self.frame = tk.Frame(parrent_frame, background='gray5')
+        self.frame.pack(side='top', fill='x', padx=(indentation*24, 0))
+
+        self.text = tk.Label(self.frame, text=self.directory.name, background='gray5', padx=4, fg='white', anchor='w', justify='left', font=main_font)
+        self.text.pack(side='left')
+
+        self.caret = tk.Label(self.frame, text='>', background='gray5', padx=8, fg='white', anchor='e', justify='right', font=main_font)
+        self.caret.pack(side='right')
+
+        self.child_frame = tk.Frame(parrent_frame, background='gray5')
+        self.child_frame.pack(side='top', fill='x')
+
+        self.open_directory()
+
+    def open_directory(self) -> None:
+        """opens directory in menu and puts its children in 'frame."""
+        for directory in self.directory.children:
+            self.children_directories.append(DirectoryMenu(directory, self.child_frame, self.indentation+1))
+
+
 class Window(object):
+
 
     def __init__(self):
         # background will be the color of the border between frames
