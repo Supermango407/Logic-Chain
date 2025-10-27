@@ -70,12 +70,13 @@ class Menu(object):
 
 class DirectoryMenu(object):
 
-    def __init__(self, directory:dbhandler.Directory, parrent_frame, indentation:int=0):
+    def __init__(self, directory:dbhandler.Directory, parrent_frame:tk.Frame, indentation:int=0):
         self.children_directories:list[DirectoryMenu] = []
         self.directory = directory
         self.indentation = indentation
+        self.parrent_frame:tk.Frame = parrent_frame
         
-        self.frame = tk.Frame(parrent_frame, background='gray5')
+        self.frame = tk.Frame(self.parrent_frame, background='gray5')
         self.frame.pack(side='top', fill='x', padx=(indentation*24, 0))
 
         self.text = tk.Label(self.frame, text=self.directory.name, background='gray5', padx=4, fg='white', anchor='w', justify='left', font=main_font)
@@ -83,16 +84,49 @@ class DirectoryMenu(object):
 
         self.caret = tk.Label(self.frame, text='>', background='gray5', padx=8, fg='white', anchor='e', justify='right', font=main_font)
         self.caret.pack(side='right')
+        
+        self.caret.configure(cursor='hand2')
+        self.caret.bind("<Button-1>", lambda e: self.toggle_directory())
 
-        self.child_frame = tk.Frame(parrent_frame, background='gray5')
-        self.child_frame.pack(side='top', fill='x')
+        self.child_frame = tk.Frame(self.parrent_frame, background='gray5')
 
-        self.open_directory()
+    def create_opinion(self, opinion:dbhandler.Opinion) -> None:
+        """creates opionion link in `child_frame."""
+        text = tk.Label(self.child_frame, text=opinion.name, background='gray5', padx=4, fg='white', anchor='w', justify='left', font=underlined_font)
+        text.pack(side='left', padx=(24*(self.indentation+1), 0))
+        
+        text.configure(cursor='hand2')
+        text.bind("<Button-1>", lambda e: window.open_table(opinion))
+
+    def toggle_directory(self):
+        """closes directory if opened, opens directory if closed."""
+        if self.caret.cget('text') == ">":
+            self.open_directory()
+        else:
+            self.close_directory()
+
+    def close_directory(self) -> None:
+        """closes direcory and deletes its children widgets."""
+        self.deletes_child_widgets()
+        self.caret.config(text=">")
 
     def open_directory(self) -> None:
         """opens directory in menu and puts its children in 'frame."""
-        for directory in self.directory.children:
-            self.children_directories.append(DirectoryMenu(directory, self.child_frame, self.indentation+1))
+        self.deletes_child_widgets()
+        self.child_frame.pack(side='top', fill='x', after=self.frame)
+        self.caret.config(text="⌄")
+        for child in self.directory.children:
+            if type(child) == dbhandler.Directory:
+                self.children_directories.append(DirectoryMenu(child, self.child_frame, self.indentation+1))
+            elif type(child) == dbhandler.Opinion:
+                self.create_opinion(child)
+
+    def deletes_child_widgets(self):
+        """delets all children in in `self.child_frame`."""
+        for widget in self.child_frame.winfo_children():
+            # widget.pack_forget()
+            widget.destroy()
+        self.child_frame.pack_forget()
 
 
 class Window(object):
@@ -109,6 +143,8 @@ class Window(object):
     
     def open_table(self, opinion:dbhandler.Opinion):
         """opens pros/cons table of `opinion`."""
+        menu.close_menu()
+
         self.pros_frame = tk.Frame(self.frame, background='gray10')
         self.cons_frame = tk.Frame(self.frame, background='gray10')
 
@@ -181,6 +217,8 @@ class ReasonTable(object):
 small_font = Font(family="Consolas", size=int(settings.font_size*0.5), weight="normal")
 main_font = Font(family="Consolas", size=int(settings.font_size*1), weight="normal")
 large_font = Font(family="Consolas", size=int(settings.font_size*1.5), weight="normal")
+
+underlined_font = Font(family="Consolas", size=int(settings.font_size*1), weight="normal", underline=True)
 
 menu = Menu()
 header = Header()
