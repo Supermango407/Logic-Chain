@@ -3,6 +3,7 @@ from tkinter.font import Font
 import screeninfo
 import settings
 import dbhandler
+from spmg import Rearrangeable
 
 
 root = tk.Tk()
@@ -157,64 +158,55 @@ class Window(object):
         header.set_label(opinion.text)
     
 
-class ReasonTable(object):
-
+class ReasonTable(Rearrangeable):
+    
     def __init__(self, parent:tk.Widget, header_text:str, reasons:list[dbhandler.Opinion]):
-        self.label = tk.Label(parent, text=header_text, background='gray10', fg='white', font=large_font)
-        self.label.pack(side='top', fill='x')
+        super().__init__(parent=parent, frame_height=settings.font_size*6, starting_frame_data=reasons)
+        self.canvas.config(bg='gray25')
+        self.scrollable_frame.config(bg="gray25")
+        # self.sort_frames()
+    #     self.label = tk.Label(parent, text=header_text, background='gray10', fg='white', font=large_font)
+    #     self.label.pack(side='top', fill='x')
 
-        self.canvas = tk.Canvas(parent, background='gray15', borderwidth=0, highlightthickness=0)
-        self.canvas.pack(side='left', fill='both', expand=True)
+    #     self.canvas = tk.Canvas(parent, background='gray15', borderwidth=0, highlightthickness=0)
+    #     self.canvas.pack(side='left', fill='both', expand=True)
 
-        self.scrollbar = tk.Scrollbar(parent, orient='vertical', command=self.canvas.yview)
-        self.scrollbar.pack(side='right', fill='y')
-        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+    #     self.scrollbar = tk.Scrollbar(parent, orient='vertical', command=self.canvas.yview)
+    #     self.scrollbar.pack(side='right', fill='y')
+    #     self.canvas.configure(yscrollcommand=self.scrollbar.set)
 
-        self.scrollable_frame = tk.Frame(self.canvas, background='gray15')
-        self.scrollable_frame_id = self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor='nw')
+    #     self.scrollable_frame = tk.Frame(self.canvas, background='gray15')
+    #     self.scrollable_frame_id = self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor='nw')
         
-        self.canvas.bind("<Configure>", lambda event: self.canvas.itemconfig(self.scrollable_frame_id, width=event.width))
-        self.scrollable_frame.bind("<Configure>", lambda event: self.canvas.configure(scrollregion=self.canvas.bbox('all')))
+    #     self.canvas.bind("<Configure>", lambda event: self.canvas.itemconfig(self.scrollable_frame_id, width=event.width))
+    #     self.scrollable_frame.bind("<Configure>", lambda event: self.canvas.configure(scrollregion=self.canvas.bbox('all')))
 
-        self.canvas.bind("<MouseWheel>", self.on_mouse_wheel)
-        self.scrollable_frame.bind("<MouseWheel>", self.on_mouse_wheel)
+    #     for reason in reasons:
+    #         self.add_reason(self.scrollable_frame, reason)
 
-        for reason in reasons:
-            self.add_reason(self.scrollable_frame, reason)
-
-    def add_reason(self, parent:tk.Widget, reason:dbhandler.Opinion):
+    def create_frame(self, frame, frame_data:dbhandler.Opinion):
         """creates `reason` box and puts it in `parent`."""
-        frame = tk.Frame(parent, background='gray10')
-        frame.pack(side='top', fill='x', padx=(10, 10), pady=(10, 0))
-        frame.bind("<MouseWheel>", self.on_mouse_wheel)
+        # create reason to make the code easier to read
+        reason:dbhandler.Opinion = frame_data
 
         header_color = settings.statement_color if reason.is_statement() else settings.opinion_color
         header = tk.Frame(frame, background=header_color)
         header.pack(side='top', fill='x', expand=True)
-        header.bind("<MouseWheel>", self.on_mouse_wheel)
 
         delete_button = tk.Button(header, padx=4, background='red', activebackground='#ff7f7f', text='DEL', font=small_font)
-        delete_button.pack(side='right')
-        delete_button.bind("<MouseWheel>", self.on_mouse_wheel)
+        delete_button.pack(side='right', padx=2, pady=2)
 
         table_button = tk.Button(header, padx=6, background='gray15', activebackground='gray25', fg='white', text='T', font=small_font, command=lambda: window.open_table(reason))
-        table_button.pack(side='left')
-        table_button.bind("<MouseWheel>", self.on_mouse_wheel)
+        table_button.pack(side='left', padx=2, pady=2)
 
         chain_button = tk.Button(header, padx=6, background='gray15', activebackground='gray25', fg='white', text='^', font=small_font)
-        chain_button.pack(side='left')
-        chain_button.bind("<MouseWheel>", self.on_mouse_wheel)
+        chain_button.pack(side='left', padx=2, pady=2)
 
         text = tk.Text(frame, background='gray20', wrap='word', font=main_font, height=2, fg='white')
         text.insert(tk.END, reason.text)
         text.pack(side='top', fill='x', expand=True)
-        text.bind("<MouseWheel>", self.on_mouse_wheel)
 
-    def on_mouse_wheel(self, event:tk.Event):
-        self.canvas.yview_scroll(-1 * (event.delta // 120), "units")
-
-
-small_font = Font(family="Consolas", size=int(settings.font_size*0.5), weight="normal")
+small_font = Font(family="Consolas", size=int(settings.font_size*0.75), weight="normal")
 main_font = Font(family="Consolas", size=int(settings.font_size*1), weight="normal")
 large_font = Font(family="Consolas", size=int(settings.font_size*1.5), weight="normal")
 

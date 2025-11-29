@@ -1,6 +1,7 @@
 from __future__ import annotations
 import mysql.connector
 
+
 mydb = mysql.connector.connect(
     host="localhost",
     user="root",
