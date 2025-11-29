@@ -70,13 +70,13 @@ class Menu(object):
 
 class DirectoryMenu(object):
 
-    def __init__(self, directory:dbhandler.Directory, parrent_frame:tk.Frame, indentation:int=0):
+    def __init__(self, directory:dbhandler.Directory, parent_frame:tk.Frame, indentation:int=0):
         self.children_directories:list[DirectoryMenu] = []
         self.directory = directory
         self.indentation = indentation
-        self.parrent_frame:tk.Frame = parrent_frame
+        self.parent_frame:tk.Frame = parent_frame
         
-        self.frame = tk.Frame(self.parrent_frame, background='gray5')
+        self.frame = tk.Frame(self.parent_frame, background='gray5')
         self.frame.pack(side='top', fill='x', padx=(indentation*24, 0))
 
         self.text = tk.Label(self.frame, text=self.directory.name, background='gray5', padx=4, fg='white', anchor='w', justify='left', font=main_font)
@@ -88,10 +88,10 @@ class DirectoryMenu(object):
         self.caret.configure(cursor='hand2')
         self.caret.bind("<Button-1>", lambda e: self.toggle_directory())
 
-        self.child_frame = tk.Frame(self.parrent_frame, background='gray5')
+        self.child_frame = tk.Frame(self.parent_frame, background='gray5')
 
     def create_opinion(self, opinion:dbhandler.Opinion) -> None:
-        """creates opionion link in `child_frame."""
+        """creates opinion link in `child_frame."""
         text = tk.Label(self.child_frame, text=opinion.name, background='gray5', padx=4, fg='white', anchor='w', justify='left', font=underlined_font)
         text.pack(side='left', padx=(24*(self.indentation+1), 0))
         
@@ -106,7 +106,7 @@ class DirectoryMenu(object):
             self.close_directory()
 
     def close_directory(self) -> None:
-        """closes direcory and deletes its children widgets."""
+        """closes directory and deletes its children widgets."""
         self.deletes_child_widgets()
         self.caret.config(text=">")
 
@@ -122,7 +122,7 @@ class DirectoryMenu(object):
                 self.create_opinion(child)
 
     def deletes_child_widgets(self):
-        """delets all children in in `self.child_frame`."""
+        """deletes all children in in `self.child_frame`."""
         for widget in self.child_frame.winfo_children():
             # widget.pack_forget()
             widget.destroy()
@@ -159,14 +159,14 @@ class Window(object):
 
 class ReasonTable(object):
 
-    def __init__(self, parrent:tk.Widget, header_text:str, reasons:list[dbhandler.Opinion]):
-        self.label = tk.Label(parrent, text=header_text, background='gray10', fg='white', font=large_font)
+    def __init__(self, parent:tk.Widget, header_text:str, reasons:list[dbhandler.Opinion]):
+        self.label = tk.Label(parent, text=header_text, background='gray10', fg='white', font=large_font)
         self.label.pack(side='top', fill='x')
 
-        self.canvas = tk.Canvas(parrent, background='gray15', borderwidth=0, highlightthickness=0)
+        self.canvas = tk.Canvas(parent, background='gray15', borderwidth=0, highlightthickness=0)
         self.canvas.pack(side='left', fill='both', expand=True)
 
-        self.scrollbar = tk.Scrollbar(parrent, orient='vertical', command=self.canvas.yview)
+        self.scrollbar = tk.Scrollbar(parent, orient='vertical', command=self.canvas.yview)
         self.scrollbar.pack(side='right', fill='y')
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
 
@@ -182,13 +182,13 @@ class ReasonTable(object):
         for reason in reasons:
             self.add_reason(self.scrollable_frame, reason)
 
-    def add_reason(self, parrent:tk.Widget, reason:dbhandler.Opinion):
-        """creates `reason` box and puts it in `parrent`."""
-        frame = tk.Frame(parrent, background='gray10')
+    def add_reason(self, parent:tk.Widget, reason:dbhandler.Opinion):
+        """creates `reason` box and puts it in `parent`."""
+        frame = tk.Frame(parent, background='gray10')
         frame.pack(side='top', fill='x', padx=(10, 10), pady=(10, 0))
         frame.bind("<MouseWheel>", self.on_mouse_wheel)
 
-        header_color = settings.statment_color if reason.is_statment() else settings.opinion_color
+        header_color = settings.statement_color if reason.is_statement() else settings.opinion_color
         header = tk.Frame(frame, background=header_color)
         header.pack(side='top', fill='x', expand=True)
         header.bind("<MouseWheel>", self.on_mouse_wheel)

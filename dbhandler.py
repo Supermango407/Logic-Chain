@@ -42,7 +42,7 @@ class Opinion(object):
                 self.cons.append(Opinion.opinions[int(con)])
         
 
-    def is_statment(self) -> bool:
+    def is_statement(self) -> bool:
         """will be True if there are not pros or cons."""
         return len(self.cons) == 0 and len(self.pros) == 0
 
@@ -52,23 +52,23 @@ def load():
     Opinion.opinions.clear()
 
     # create Directories
-    sql = f"SELECT `id`, `name`, `parrent` FROM `directories`;"
+    sql = f"SELECT `id`, `name`, `parent` FROM `directories`;"
     cursor.execute(sql) 
     table = cursor.fetchall()
 
     for row in table:
         id:int = row[0]
         name:str = row[1]
-        parrent_id:int = row[2]
+        parent_id:int = row[2]
 
         directory:Directory = Directory(name)
         Directory.directories[id] = directory
 
-        # add to `top_directorys` if top level directory
-        if parrent_id == 0:
+        # add to `top_directories` if top level directory
+        if parent_id == 0:
             Directory.top_directories[row[0]] = directory
         else:
-            Directory.directories[parrent_id].add_child(directory)
+            Directory.directories[parent_id].add_child(directory)
 
     # create opinions
     sql = f"SELECT `id`, `directory`, `name`, `text`, `pros`, `cons` FROM `opinions`;"
