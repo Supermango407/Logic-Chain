@@ -49,7 +49,6 @@ class Opinion(object):
 
 
 def load():
-    global opinions
     Opinion.opinions.clear()
 
     # create Directories

@@ -22,6 +22,49 @@ root.config(bg='black')
 dbhandler.load()
 
 
+class PopUp(object):
+    """the menu the pops up when mouse right clicks."""
+
+    def __init__(self):
+        self.frame = tk.Frame(root, background='gray12')
+    
+    def clear_frame(self):
+        """deletes everything in `self.frame`."""
+        for child in self.frame.winfo_children():
+            child.pack_forget()
+
+    def show(self, x, y):
+        """shows the menu."""
+        self.frame.place(anchor='nw', x=x-root.winfo_x()-9, y=y-root.winfo_y()-30)
+
+    def add_button(self, label_text, on_clicked:callable):
+        """adds button to `self.frame`."""
+        button = tk.Button(
+            self.frame,
+            text=label_text,
+            font=main_font,
+            bg='gray10',
+            fg='white',
+            activebackground='gray8',
+            activeforeground='white',
+        )
+        button.pack(pady=2, padx=2, fill='x')
+        
+        button.bind("<Enter>", lambda e: button.config(bg='gray14'))
+        button.bind("<Leave>", lambda e: button.config(bg='gray10'))
+        button.bind("<Button-1>", on_clicked)
+
+
+    def directory_clicked(self, directory:dbhandler.Directory, event:tk.Event):
+        """called when directory is clicked."""
+        self.clear_frame()
+
+        self.add_button("create directory", lambda e: print("directory"))
+        self.add_button("create opinion", lambda e: print("opinion"))
+
+        self.show(event.x_root, event.y_root)
+
+
 class Header(object):
     """the header at the top of the screen."""
 
@@ -98,6 +141,7 @@ class MenuDirectory(object):
         
         self.caret.configure(cursor='hand2')
         self.caret.bind("<Button-1>", lambda e: self.toggle_directory())
+        self.caret.bind("<Button-3>", lambda e: pop_up.directory_clicked(self.directory_data, e))
 
         self.child_frame = tk.Frame(self.parent_frame, background='gray5')
 
@@ -211,8 +255,12 @@ header = Header()
 """the header of the screen."""
 window = Window()
 """the main window where the current logic is."""
+pop_up = PopUp()
+"""the menu that appears when somthing is right-clicked."""
 
 window.open_table(dbhandler.Opinion.opinions[1])
 # window.open_table(dbhandler.Opinion.opinions[4])
+
+# pop_up.directory_clicked()
 
 root.mainloop()
