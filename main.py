@@ -23,6 +23,7 @@ dbhandler.load()
 
 
 class Header(object):
+    """the header at the top of the screen."""
 
     def __init__(self):
         self.frame = tk.Frame(root, height=65, background=settings.opinion_color, padx=4, pady=4)
@@ -40,6 +41,7 @@ class Header(object):
 
 
 class Menu(object):
+    """The menu that lets you redirect to another page."""
 
     def __init__(self):
         self.frame = tk.Frame(root, background='gray5')
@@ -51,36 +53,44 @@ class Menu(object):
         self.directory_frame = tk.Frame(self.frame, background='gray5')
         self.directory_frame.pack(side='top', fill='both', expand=True)
 
-        self.directory_menus:list[DirectoryMenu] = []
+        self.directory_menus:list[MenuDirectory] = []
         for id in dbhandler.Directory.top_directories:
             directory:dbhandler.Directory = dbhandler.Directory.top_directories[id]
-            self.directory_menus.append(DirectoryMenu(directory, self.directory_frame))
+            self.directory_menus.append(MenuDirectory(directory, self.directory_frame))
 
     def toggle_menu(self):
+        """hides the window if shown, shows window if hidden."""
         if self.frame.winfo_ismapped():
             self.close_menu()
         else:
             self.open_menu()
 
     def open_menu(self):
+        """shows the menu."""
         self.frame.pack(side='left', fill='y', after=header.frame)
 
     def close_menu(self):
+        """closes the menu."""
         self.frame.pack_forget()
 
 
-class DirectoryMenu(object):
+class MenuDirectory(object):
+    """a Directory in the Menu."""
 
     def __init__(self, directory:dbhandler.Directory, parent_frame:tk.Frame, indentation:int=0):
-        self.children_directories:list[DirectoryMenu] = []
-        self.directory = directory
+        self.children_directories:list[MenuDirectory] = []
+        """the child directios in `self`."""
+        self.directory_data = directory
+        """the data of the directory."""
         self.indentation = indentation
+        """how far indented the directory is."""
         self.parent_frame:tk.Frame = parent_frame
+        """the frame the menu is placed in."""
         
         self.frame = tk.Frame(self.parent_frame, background='gray5')
         self.frame.pack(side='top', fill='x', padx=(indentation*24, 0))
 
-        self.text = tk.Label(self.frame, text=self.directory.name, background='gray5', padx=4, fg='white', anchor='w', justify='left', font=main_font)
+        self.text = tk.Label(self.frame, text=self.directory_data.name, background='gray5', padx=4, fg='white', anchor='w', justify='left', font=main_font)
         self.text.pack(side='left')
 
         self.caret = tk.Label(self.frame, text='>', background='gray5', padx=8, fg='white', anchor='e', justify='right', font=main_font)
@@ -116,9 +126,9 @@ class DirectoryMenu(object):
         self.deletes_child_widgets()
         self.child_frame.pack(side='top', fill='x', after=self.frame)
         self.caret.config(text="⌄")
-        for child in self.directory.children:
+        for child in self.directory_data.children:
             if type(child) == dbhandler.Directory:
-                self.children_directories.append(DirectoryMenu(child, self.child_frame, self.indentation+1))
+                self.children_directories.append(MenuDirectory(child, self.child_frame, self.indentation+1))
             elif type(child) == dbhandler.Opinion:
                 self.create_opinion(child)
 
@@ -131,7 +141,7 @@ class DirectoryMenu(object):
 
 
 class Window(object):
-
+    """The main window of the screen where the logic is."""
 
     def __init__(self):
         # background will be the color of the border between frames
@@ -165,24 +175,6 @@ class ReasonTable(Rearrangeable):
         self.canvas.config(bg='gray25')
         self.scrollable_frame.config(bg="gray25")
         # self.sort_frames()
-    #     self.label = tk.Label(parent, text=header_text, background='gray10', fg='white', font=large_font)
-    #     self.label.pack(side='top', fill='x')
-
-    #     self.canvas = tk.Canvas(parent, background='gray15', borderwidth=0, highlightthickness=0)
-    #     self.canvas.pack(side='left', fill='both', expand=True)
-
-    #     self.scrollbar = tk.Scrollbar(parent, orient='vertical', command=self.canvas.yview)
-    #     self.scrollbar.pack(side='right', fill='y')
-    #     self.canvas.configure(yscrollcommand=self.scrollbar.set)
-
-    #     self.scrollable_frame = tk.Frame(self.canvas, background='gray15')
-    #     self.scrollable_frame_id = self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor='nw')
-        
-    #     self.canvas.bind("<Configure>", lambda event: self.canvas.itemconfig(self.scrollable_frame_id, width=event.width))
-    #     self.scrollable_frame.bind("<Configure>", lambda event: self.canvas.configure(scrollregion=self.canvas.bbox('all')))
-
-    #     for reason in reasons:
-    #         self.add_reason(self.scrollable_frame, reason)
 
     def create_frame(self, frame, frame_data:dbhandler.Opinion):
         """creates `reason` box and puts it in `parent`."""
@@ -206,6 +198,7 @@ class ReasonTable(Rearrangeable):
         text.insert(tk.END, reason.text)
         text.pack(side='top', fill='x', expand=True)
 
+
 small_font = Font(family="Consolas", size=int(settings.font_size*0.75), weight="normal")
 main_font = Font(family="Consolas", size=int(settings.font_size*1), weight="normal")
 large_font = Font(family="Consolas", size=int(settings.font_size*1.5), weight="normal")
@@ -213,8 +206,11 @@ large_font = Font(family="Consolas", size=int(settings.font_size*1.5), weight="n
 underlined_font = Font(family="Consolas", size=int(settings.font_size*1), weight="normal", underline=True)
 
 menu = Menu()
+"""the menu used to redirect to a different page."""
 header = Header()
+"""the header of the screen."""
 window = Window()
+"""the main window where the current logic is."""
 
 window.open_table(dbhandler.Opinion.opinions[1])
 # window.open_table(dbhandler.Opinion.opinions[4])
