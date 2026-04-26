@@ -16,7 +16,7 @@ else:
     root.geometry(f"800x600+250+40")
 
 root.minsize(400, 400)
-root.state('zoomed')
+# root.state('zoomed')
 root.config(bg='black')
 
 dbhandler.load()
@@ -27,6 +27,7 @@ class PopUp(object):
 
     def __init__(self):
         self.frame = tk.Frame(root, background='gray12')
+        root.bind("<Button-1>", lambda e: self.hide())
     
     def clear_frame(self):
         """deletes everything in `self.frame`."""
@@ -36,6 +37,10 @@ class PopUp(object):
     def show(self, x, y):
         """shows the menu."""
         self.frame.place(anchor='nw', x=x-root.winfo_x()-9, y=y-root.winfo_y()-30)
+
+    def hide(self):
+        """hides the menu."""
+        self.frame.place_forget()
 
     def add_button(self, label_text, on_clicked:callable):
         """adds button to `self.frame`."""
@@ -54,13 +59,14 @@ class PopUp(object):
         button.bind("<Leave>", lambda e: button.config(bg='gray10'))
         button.bind("<Button-1>", on_clicked)
 
-
-    def directory_clicked(self, directory:dbhandler.Directory, event:tk.Event):
-        """called when directory is clicked."""
+    def open_menu(self, buttons:list[tuple[str, callable]], event:tk.Event):
+        """something is right clicked.
+        `buttons`: a list of tuples where the first element is the text on the button and 
+        the second element is the function that runs when the button is clicked."""
         self.clear_frame()
 
-        self.add_button("create directory", lambda e: print("directory"))
-        self.add_button("create opinion", lambda e: print("opinion"))
+        for label_text, on_clicked in buttons:
+            self.add_button(label_text, on_clicked)
 
         self.show(event.x_root, event.y_root)
 
@@ -141,13 +147,29 @@ class MenuDirectory(object):
         
         self.caret.configure(cursor='hand2')
         self.caret.bind("<Button-1>", lambda e: self.toggle_directory())
-        self.caret.bind("<Button-3>", lambda e: pop_up.directory_clicked(self.directory_data, e))
+
+        menu_buttons = [("Create Directory", self.create_directory), ("Create Opinion", self.create_opinion)]
+        self.caret.bind("<Button-3>", lambda e: pop_up.open_menu(menu_buttons, e))
 
         self.child_frame = tk.Frame(self.parent_frame, background='gray5')
 
-    def create_opinion(self, opinion:dbhandler.Opinion) -> None:
-        """creates opinion link in `child_frame."""
-        text = tk.Label(self.child_frame, text=opinion.name, background='gray5', padx=4, fg='white', anchor='w', justify='left', font=underlined_font)
+    def create_directory(self, event:tk.Event):
+        """creates a directory in `self`."""
+        print(self.directory_data.name, "creating directory")
+        dbhandler.create_directory("New Directory", self.directory_data.id)
+        self.open_directory()
+
+    def create_opinion(self, event:tk.Event):
+        """creates an opinion in `self`."""
+        print(self.directory_data.name, "creating opinion")
+        dbhandler.create_opinion("", "New Opinion", self.directory_data.id)
+
+    def add_opinion_link(self, opinion:dbhandler.Opinion) -> None:
+        """adds opinion link to `child_frame`."""
+        opinion_frame = tk.Frame(self.child_frame, background='gray5')
+        opinion_frame.pack(side='top', fill='x')
+
+        text = tk.Label(opinion_frame, text=opinion.name, background='gray5', padx=4, fg='white', anchor='w', justify='left', font=underlined_font)
         text.pack(side='left', padx=(24*(self.indentation+1), 0))
         
         text.configure(cursor='hand2')
@@ -170,11 +192,12 @@ class MenuDirectory(object):
         self.deletes_child_widgets()
         self.child_frame.pack(side='top', fill='x', after=self.frame)
         self.caret.config(text="⌄")
-        for child in self.directory_data.children:
-            if type(child) == dbhandler.Directory:
-                self.children_directories.append(MenuDirectory(child, self.child_frame, self.indentation+1))
-            elif type(child) == dbhandler.Opinion:
-                self.create_opinion(child)
+        
+        for child_directory in self.directory_data.children_directories:
+            self.children_directories.append(MenuDirectory(child_directory, self.child_frame, self.indentation+1))
+        
+        for child_opinion in self.directory_data.children_opinions:
+            self.add_opinion_link(child_opinion)
 
     def deletes_child_widgets(self):
         """deletes all children in in `self.child_frame`."""
