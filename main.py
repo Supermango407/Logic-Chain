@@ -3,7 +3,7 @@ from tkinter.font import Font
 import screeninfo
 import settings
 import dbhandler
-from spmg import Rearrangeable
+from spmg import Rearrangeable, EditableLabel
 
 
 root = tk.Tk()
@@ -81,7 +81,7 @@ class Header(object):
         self.menu_button = tk.Button(self.frame, text="Menu", font=main_font, command=menu.toggle_menu)
         self.menu_button.place(anchor='w', rely=0.5)
 
-        self.header_text = tk.Label(self.frame, text='Opinion', font=main_font, background=settings.opinion_color)
+        self.header_text = EditableLabel(self.frame, text='Opinion', justify='center', font=main_font, background=settings.opinion_color)
         self.header_text.place(anchor='center', relx=0.5, rely=0.5)
 
     def set_label(self, text:str) -> None:
