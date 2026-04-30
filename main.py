@@ -79,10 +79,17 @@ class Header(object):
         self.frame.pack(side='top', fill='x')
 
         self.menu_button = tk.Button(self.frame, text="Menu", font=main_font, command=menu.toggle_menu)
-        self.menu_button.place(anchor='w', rely=0.5)
+        self.menu_button.pack(side='left', fill='y')
 
-        self.header_text = EditableLabel(self.frame, text='Opinion', justify='center', font=main_font, background=settings.opinion_color)
-        self.header_text.place(anchor='center', relx=0.5, rely=0.5)
+        self.save_button = tk.Button(self.frame, text="Save", font=main_font)
+        self.save_button.pack(side='right', fill='y')
+
+        self.label_frame = tk.Frame(self.frame, background=settings.opinion_color)
+        self.label_frame.pack(side='right', fill='both', expand=True, padx=(8, 8))
+
+        placing_kwargs = {'anchor':'center', 'width':None, 'x':0, 'y':0, 'relx':0.5, 'rely':0.5, 'relwidth':1, 'relheight':0.8}
+        self.header_text = EditableLabel(self.label_frame, text='Opinion', justify='center', font=main_font, background=settings.opinion_color, placing_kwargs=placing_kwargs)
+        self.header_text.place(anchor='center', relx=0.5, rely=0.5, relwidth=1, relheight=0.8)
 
     def set_label(self, text:str) -> None:
         """set the header label to be `text`."""
@@ -226,8 +233,8 @@ class Window(object):
         self.pros_frame = tk.Frame(self.frame, background='gray10')
         self.cons_frame = tk.Frame(self.frame, background='gray10')
 
-        self.pros_frame.grid(row=0, column=0, sticky='nsew', padx=(0, 1))
-        self.cons_frame.grid(row=0, column=1, sticky='nsew', padx=(1, 0))
+        self.pros_frame.pack(side='left', fill='both', expand=True)
+        self.cons_frame.pack(side='right', fill='both', expand=True)
 
         self.pros_table = ReasonTable(self.pros_frame, 'Pros', opinion.pros)
         self.cons_table = ReasonTable(self.cons_frame, 'Cons', opinion.cons)
@@ -283,6 +290,12 @@ pop_up = PopUp()
 
 window.open_table(dbhandler.Opinion.opinions[1])
 # window.open_table(dbhandler.Opinion.opinions[4])
+
+
+# def test(event):
+#     window.pros_table.add_frame(dbhandler.Opinion.opinions[4])
+
+# root.bind("<Return>", test)
 
 # pop_up.directory_clicked()
 
