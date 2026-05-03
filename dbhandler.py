@@ -118,8 +118,6 @@ def create_directory(name:str, parent_id:int=0) -> None:
     Directory.directories[id] = directory
     Directory.directories[parent_id].add_directory(directory)
 
-    # mydb.commit()
-
 
 def create_opinion(text:str, name:str, directory_id:int=0) -> None:
     """creates an opinion in the database."""
@@ -135,4 +133,11 @@ def create_opinion(text:str, name:str, directory_id:int=0) -> None:
     Opinion.opinions[id] = opinion
     Directory.directories[directory_id].add_opinion(opinion)
 
-    # mydb.commit()
+
+def edit_opinion_text(opinion_id:int, new_text:str) -> None:
+    """edits the text of an opinion in the database."""
+    print(new_text)
+    sql = f"UPDATE `opinions` SET `text`='{new_text}' WHERE `id`={opinion_id};"
+    cursor.execute(sql)
+    Opinion.opinions[opinion_id].text = new_text
+

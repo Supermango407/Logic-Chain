@@ -88,12 +88,16 @@ class Header(object):
         self.label_frame.pack(side='right', fill='both', expand=True, padx=(8, 8))
 
         placing_kwargs = {'anchor':'center', 'width':None, 'x':0, 'y':0, 'relx':0.5, 'rely':0.5, 'relwidth':1, 'relheight':0.8}
-        self.header_text = EditableLabel(self.label_frame, text='Opinion', justify='center', font=main_font, background=settings.opinion_color, placing_kwargs=placing_kwargs)
+        self.header_text = EditableLabel(self.label_frame, on_save=self.label_edited, text='Opinion', justify='center', font=main_font, background=settings.opinion_color, placing_kwargs=placing_kwargs)
         self.header_text.place(anchor='center', relx=0.5, rely=0.5, relwidth=1, relheight=0.8)
 
     def set_label(self, text:str) -> None:
         """set the header label to be `text`."""
         self.header_text.config(text=text)
+
+    def label_edited(self) -> None:
+        """runs when the header label is edited."""
+        dbhandler.edit_opinion_text(window.opinion_open.id, self.header_text.cget('text'))
 
 
 class Menu(object):
@@ -225,10 +229,20 @@ class Window(object):
         self.frame.grid_columnconfigure(0, weight=1)
         self.frame.grid_columnconfigure(1, weight=1)
         self.frame.grid_rowconfigure(0, weight=1)
+
+        self.opinion_open = None
+        """the opinion that is currently open in the window."""
     
+    def close_table(self):
+        """closes the pros/cons table."""
+        for child in self.frame.winfo_children():
+            child.pack_forget()
+
     def open_table(self, opinion:dbhandler.Opinion):
         """opens pros/cons table of `opinion`."""
         menu.close_menu()
+        self.close_table()
+        self.opinion_open = opinion
 
         self.pros_frame = tk.Frame(self.frame, background='gray10')
         self.cons_frame = tk.Frame(self.frame, background='gray10')
