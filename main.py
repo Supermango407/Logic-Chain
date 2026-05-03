@@ -93,6 +93,10 @@ class Header(object):
 
     def set_label(self, text:str) -> None:
         """set the header label to be `text`."""
+        print(text)
+
+        self.header_text.entry.delete(0, tk.END)
+        self.header_text.entry.insert(0, text)
         self.header_text.config(text=text)
 
     def label_edited(self) -> None:
@@ -240,6 +244,10 @@ class Window(object):
 
     def open_table(self, opinion:dbhandler.Opinion):
         """opens pros/cons table of `opinion`."""
+        if header.header_text.editing:
+            header.header_text.save()
+        header.set_label(opinion.text)
+
         menu.close_menu()
         self.close_table()
         self.opinion_open = opinion
@@ -252,8 +260,6 @@ class Window(object):
 
         self.pros_table = ReasonTable(self.pros_frame, 'Pros', opinion.pros)
         self.cons_table = ReasonTable(self.cons_frame, 'Cons', opinion.cons)
-
-        header.set_label(opinion.text)
     
 
 class ReasonTable(Rearrangeable):
