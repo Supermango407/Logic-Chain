@@ -7,3 +7,4 @@ if external_module_dir not in sys.path:
 
 from spmg_tkinter.spmg_tkinter_main import EditableLabel
 from spmg_tkinter.rearrangeable import Rearrangeable
+from spmg_tkinter.pop_up import PopUp

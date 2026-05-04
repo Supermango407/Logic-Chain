@@ -3,7 +3,7 @@ from tkinter.font import Font
 import screeninfo
 import settings
 import dbhandler
-from spmg import Rearrangeable, EditableLabel
+from spmg import Rearrangeable, EditableLabel, PopUp
 
 
 root = tk.Tk()
@@ -20,55 +20,6 @@ root.minsize(400, 400)
 root.config(bg='black')
 
 dbhandler.load()
-
-
-class PopUp(object):
-    """the menu the pops up when mouse right clicks."""
-
-    def __init__(self):
-        self.frame = tk.Frame(root, background='gray12')
-        root.bind("<Button-1>", lambda e: self.hide())
-    
-    def clear_frame(self):
-        """deletes everything in `self.frame`."""
-        for child in self.frame.winfo_children():
-            child.pack_forget()
-
-    def show(self, x, y):
-        """shows the menu."""
-        self.frame.place(anchor='nw', x=x-root.winfo_x()-9, y=y-root.winfo_y()-30)
-
-    def hide(self):
-        """hides the menu."""
-        self.frame.place_forget()
-
-    def add_button(self, label_text, on_clicked:callable):
-        """adds button to `self.frame`."""
-        button = tk.Button(
-            self.frame,
-            text=label_text,
-            font=main_font,
-            bg='gray10',
-            fg='white',
-            activebackground='gray8',
-            activeforeground='white',
-        )
-        button.pack(pady=2, padx=2, fill='x')
-        
-        button.bind("<Enter>", lambda e: button.config(bg='gray14'))
-        button.bind("<Leave>", lambda e: button.config(bg='gray10'))
-        button.bind("<Button-1>", on_clicked)
-
-    def open_menu(self, buttons:list[tuple[str, callable]], event:tk.Event):
-        """something is right clicked.
-        `buttons`: a list of tuples where the first element is the text on the button and 
-        the second element is the function that runs when the button is clicked."""
-        self.clear_frame()
-
-        for label_text, on_clicked in buttons:
-            self.add_button(label_text, on_clicked)
-
-        self.show(event.x_root, event.y_root)
 
 
 class Header(object):
@@ -143,7 +94,9 @@ class MenuDirectory(object):
 
     def __init__(self, directory:dbhandler.Directory, parent_frame:tk.Frame, indentation:int=0):
         self.children_directories:list[MenuDirectory] = []
-        """the child directios in `self`."""
+        """the child directories in `self`."""
+        self.children_opinions:list[OpinionLink] = []
+        """the child opinions in `self`."""
         self.directory_data = directory
         """the data of the directory."""
         self.indentation = indentation
@@ -179,17 +132,6 @@ class MenuDirectory(object):
         print(self.directory_data.name, "creating opinion")
         dbhandler.create_opinion("", "New Opinion", self.directory_data.id)
 
-    def add_opinion_link(self, opinion:dbhandler.Opinion) -> None:
-        """adds opinion link to `child_frame`."""
-        opinion_frame = tk.Frame(self.child_frame, background='gray5')
-        opinion_frame.pack(side='top', fill='x')
-
-        text = tk.Label(opinion_frame, text=opinion.name, background='gray5', padx=4, fg='white', anchor='w', justify='left', font=underlined_font)
-        text.pack(side='left', padx=(24*(self.indentation+1), 0))
-        
-        text.configure(cursor='hand2')
-        text.bind("<Button-1>", lambda e: window.open_table(opinion))
-
     def toggle_directory(self):
         """closes directory if opened, opens directory if closed."""
         if self.caret.cget('text') == ">":
@@ -212,7 +154,7 @@ class MenuDirectory(object):
             self.children_directories.append(MenuDirectory(child_directory, self.child_frame, self.indentation+1))
         
         for child_opinion in self.directory_data.children_opinions:
-            self.add_opinion_link(child_opinion)
+            self.children_opinions.append(OpinionLink(child_opinion, self.child_frame, self.indentation+1))
 
     def deletes_child_widgets(self):
         """deletes all children in in `self.child_frame`."""
@@ -220,6 +162,39 @@ class MenuDirectory(object):
             # widget.pack_forget()
             widget.destroy()
         self.child_frame.pack_forget()
+
+
+class OpinionLink(object):
+    """a link to an opinion in the menu."""
+
+    def __init__(self, opinion:dbhandler.Opinion, parent_frame:tk.Frame, indentation:int):
+        self.opinion_data = opinion
+        self.parent_frame = parent_frame
+        self.indentation = indentation
+
+        self.frame = tk.Frame(self.parent_frame, background='gray5')
+        self.frame.pack(side='top', fill='both', padx=(indentation*24, 0))
+
+        self.text = EditableLabel(self.frame, text=self.opinion_data.name, background='gray5', fg='white', justify='left', font=underlined_font)
+        self.text.pack(side='left', fill='both', expand=True, padx=4)
+
+        self.text.configure(cursor='hand2')
+        self.text.bind("<Button-1>", lambda e: window.open_table(self.opinion_data))
+        
+        menu_buttons = [("Rename Opinion", self.rename_opinion), ("Delete Opinion", self.delete_opinion)]
+        self.text.bind("<Button-3>", lambda e: pop_up.open_menu(menu_buttons, e))
+
+
+    def rename_opinion(self, event:tk.Event):
+        """renames an opinion in `self`."""
+        self.text.enable_editing = True
+        self.text.edit()
+        self.text.entry.focus_set()
+        self.text.enable_editing = False
+    
+    def delete_opinion(self, event:tk.Event):
+        """deletes an opinion in `self`."""
+        print("deleting opinion")
 
 
 class Window(object):
@@ -305,7 +280,7 @@ header = Header()
 """the header of the screen."""
 window = Window()
 """the main window where the current logic is."""
-pop_up = PopUp()
+pop_up = PopUp(root, main_font)
 """the menu that appears when somthing is right-clicked."""
 
 window.open_table(dbhandler.Opinion.opinions[1])
